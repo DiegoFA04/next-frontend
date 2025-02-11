@@ -4,15 +4,38 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-const LoginPage = () => {
+const RegisterPage = () => {
   const [errors, setErrors] = useState<string[]>([]);
-  const [email, setEmail] = useState<string>("admin@test.com");
+  const [name, setName] = useState<string>("test");
+  const [email, setEmail] = useState<string>("test@test.com");
   const [password, setPassword] = useState<string>("123123");
   const router = useRouter();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrors([]);
+
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/register`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+        }),
+      }
+    );
+
+    const responseAPI = await res.json();
+
+    if (!res.ok) {
+      setErrors(responseAPI.message);
+      return;
+    }
 
     const responseNextAuth = await signIn("credentials", {
       email,
@@ -30,11 +53,19 @@ const LoginPage = () => {
 
   return (
     <div>
-      <h1>Login</h1>
+      <h1>Register</h1>
       <form onSubmit={handleSubmit}>
         <input
+          type="text"
+          placeholder="test"
+          name="name"
+          className="form-control mb-2"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+        />
+        <input
           type="email"
-          placeholder="admin@test.com"
+          placeholder="test@test.com"
           name="email"
           className="form-control mb-2"
           value={email}
@@ -49,7 +80,7 @@ const LoginPage = () => {
           onChange={(event) => setPassword(event.target.value)}
         />
         <button type="submit" className="btn btn-primary">
-          Login
+          Register
         </button>
       </form>
 
@@ -65,4 +96,4 @@ const LoginPage = () => {
     </div>
   );
 };
-export default LoginPage;
+export default RegisterPage;
